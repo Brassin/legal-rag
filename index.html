@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Simple RAG UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta
+      name="description"
+      content="Simple, pleasant RAG UI (single-file) - host on GitHub Pages"
+    />
+    <style>
+      .loading-dots {
+        display: inline-block;
+        width: 40px;
+        text-align: left;
+      }
+
+      .loading-dots .dot {
+        display: inline-block;
+        opacity: 0;
+        animation: loadingDots 1.4s infinite;
+      }
+
+      .loading-dots .dot2 {
+        animation-delay: 0.2s;
+      }
+
+      .loading-dots .dot3 {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes loadingDots {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 text-slate-800 min-h-screen flex items-start justify-center p-6"
+  >
+    <div class="w-full max-w-3xl">
+      <header class="mb-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold">Legal-RAG</h1>
+          </div>
+        </div>
+      </header>
+
+      <main class="space-y-4">
+        <section class="bg-white p-4 rounded-2xl shadow-sm">
+          <label class="block text-sm font-medium text-slate-700"
+            >Question</label
+          >
+          <textarea
+            id="query"
+            rows="3"
+            class="mt-2 w-full p-3 border rounded-lg bg-slate-50"
+            placeholder="Ask something..."
+          >
+What constitutes infringement of essential patent features?</textarea
+          >
+
+          <div class="mt-3 flex items-center gap-3">
+            <label class="flex items-center gap-2 text-sm text-slate-600"
+              >Top K
+              <input
+                id="top_k"
+                type="number"
+                min="1"
+                max="20"
+                value="3"
+                class="ml-2 w-20 p-1 rounded border text-sm"
+              />
+            </label>
+
+            <button
+              id="askBtn"
+              class="ml-auto inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow"
+            >
+              <svg
+                id="btnIcon"
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+              Query
+            </button>
+
+            <div class="relative inline-block">
+              <button
+                id="pasteSample"
+                title="Choose sample query"
+                class="text-sm text-slate-600 px-3 py-1 rounded hover:bg-slate-100"
+              >
+                Example queries
+              </button>
+              <div
+                id="queryExamples"
+                class="absolute right-0 mt-1 w-80 bg-white shadow-lg rounded-lg border border-slate-200 p-2 z-10 hidden max-h-96 overflow-y-auto"
+              >
+                <!-- Patent-Related Queries -->
+                <div class="mb-2">
+                  <h4
+                    class="text-xs font-medium text-slate-500 border-b pb-1 mb-1"
+                  >
+                    Patent-Related Queries
+                  </h4>
+                  <div class="space-y-1">
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What constitutes infringement of essential patent
+                      features?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Explain the principle from AG v Henry Showell Ltd
+                      regarding patent infringement
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Summarize key cases about patent essential features
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What standards do courts use to determine patent
+                      infringement?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Find landmark patent infringement cases
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Design Infringement Queries -->
+                <div class="mb-2">
+                  <h4
+                    class="text-xs font-medium text-slate-500 border-b pb-1 mb-1"
+                  >
+                    Design Infringement Queries
+                  </h4>
+                  <div class="space-y-1">
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What is the test for visual design infringement?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Explain how 'appearance to the eye' affects design
+                      infringement cases
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What factors determine design infringement according to
+                      case law?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Find cases where visual appearance was the critical issue
+                      in infringement
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Legal Principles Queries -->
+                <div class="mb-2">
+                  <h4
+                    class="text-xs font-medium text-slate-500 border-b pb-1 mb-1"
+                  >
+                    Legal Principles Queries
+                  </h4>
+                  <div class="space-y-1">
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What did Gummow J establish in Nicaro Holdings v Martin
+                      Engineering?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Explain legal principles for comparing designs in
+                      infringement cases
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      How do courts measure similarity in design infringement
+                      cases?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What are the technical approaches to determining
+                      infringement?
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Generic Legal Queries -->
+                <div>
+                  <h4
+                    class="text-xs font-medium text-slate-500 border-b pb-1 mb-1"
+                  >
+                    Generic Legal Queries
+                  </h4>
+                  <div class="space-y-1">
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Summarize the most significant legal precedents in the
+                      database
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      What legal standards are used to evaluate infringement
+                      claims?
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      Explain the burden of proof in infringement cases
+                    </div>
+                    <div
+                      class="sample-query hover:bg-slate-100 p-1 rounded text-sm cursor-pointer"
+                    >
+                      How do courts interpret essential features in legal
+                      claims?
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="resultArea"
+          class="hidden bg-white p-4 rounded-2xl shadow-sm space-y-3"
+        >
+          <div class="flex items-start gap-4">
+            <div class="flex-1">
+              <h2 class="text-lg font-semibold" id="answerTitle">Answer</h2>
+              <p
+                id="answerText"
+                class="mt-2 text-slate-800 leading-relaxed"
+              ></p>
+            </div>
+            <div class="w-36 text-right">
+              <div
+                id="confidenceBadge"
+                class="inline-block text-sm px-3 py-1 rounded-full bg-slate-100 text-slate-700"
+              >
+                Confidence: --
+              </div>
+              <div class="mt-2 text-xs text-slate-500">
+                Source count: <span id="srcCount">0</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-medium text-sm text-slate-700">Citations</h3>
+            <div
+              id="citations"
+              class="mt-2 space-y-2 text-sm text-slate-700"
+            ></div>
+          </div>
+
+          <div>
+            <h3 class="font-medium text-sm text-slate-700">
+              Recommended Actions
+            </h3>
+            <div id="actions" class="mt-2 flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button id="copyAnswer" class="text-sm px-3 py-1 rounded border">
+              Copy Answer
+            </button>
+            <button id="downloadJson" class="text-sm px-3 py-1 rounded border">
+              Download JSON
+            </button>
+            <button
+              id="toggleRaw"
+              class="ml-auto text-sm px-3 py-1 rounded border"
+            >
+              Show raw
+            </button>
+          </div>
+
+          <pre
+            id="rawJson"
+            class="hidden overflow-auto text-xs bg-slate-50 p-3 rounded text-slate-700"
+          ></pre>
+        </section>
+
+        <section class="bg-white p-4 rounded-2xl shadow-sm">
+          <h3 class="text-sm font-medium text-slate-700">History</h3>
+          <div id="history" class="mt-2 text-sm text-slate-700"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // ===== CONFIG =====
+      // Change this to your deployed RAG endpoint when hosting. If serving over HTTPS, ensure API is HTTPS.
+      const API_URL = "https://legalrag-iycj.onrender.com/query/json";
+      // ==================
+
+      const askBtn = document.getElementById("askBtn");
+      const queryEl = document.getElementById("query");
+      const topKEl = document.getElementById("top_k");
+      const resultArea = document.getElementById("resultArea");
+      const answerText = document.getElementById("answerText");
+      const confidenceBadge = document.getElementById("confidenceBadge");
+      const citationsEl = document.getElementById("citations");
+      const actionsEl = document.getElementById("actions");
+      const rawJson = document.getElementById("rawJson");
+      const toggleRaw = document.getElementById("toggleRaw");
+      const copyAnswer = document.getElementById("copyAnswer");
+      const downloadJson = document.getElementById("downloadJson");
+      const historyEl = document.getElementById("history");
+      const pasteSample = document.getElementById("pasteSample");
+      const srcCount = document.getElementById("srcCount");
+
+      let lastResponse = null;
+
+      function showLoading(on = true) {
+        if (on) {
+          askBtn.setAttribute("disabled", "");
+          // Replace the icon with dots animation
+          askBtn.innerHTML = `
+        <span class="loading-dots">
+          <span class="dot dot1">.</span>
+          <span class="dot dot2">.</span>
+          <span class="dot dot3">.</span>
+        </span>
+        Loading
+      `;
+        } else {
+          askBtn.removeAttribute("disabled");
+          // Restore original button content
+          askBtn.innerHTML = `
+        <svg id="btnIcon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+        Query
+      `;
+        }
+      }
+
+      function renderResponse(obj) {
+        lastResponse = obj;
+        resultArea.classList.remove("hidden");
+        answerText.textContent = obj.answer || "No answer field in response.";
+        confidenceBadge.textContent = "Confidence: " + (obj.confidence ?? "--");
+
+        // citations
+        citationsEl.innerHTML = "";
+        const citations = obj.citations || [];
+        srcCount.textContent = citations.length;
+        if (citations.length === 0) {
+          citationsEl.innerHTML =
+            '<div class="text-slate-500">No citations returned.</div>';
+        } else {
+          citations.forEach((c) => {
+            const card = document.createElement("div");
+            card.className = "p-3 border rounded-lg bg-slate-50";
+            card.innerHTML = `<div class=\"text-xs text-slate-500\">${escapeHtml(
+              c.doc_id || ""
+            )}</div>
+            <div class=\"mt-1 text-sm\">${escapeHtml(c.quote || "")}</div>`;
+            citationsEl.appendChild(card);
+          });
+        }
+
+        // recommended actions
+        actionsEl.innerHTML = "";
+        (obj.recommended_next_actions || []).forEach((a) => {
+          const b = document.createElement("button");
+          b.className =
+            "text-sm px-3 py-1 rounded border bg-white hover:bg-slate-50";
+          b.textContent = a;
+          b.onclick = () => navigator.clipboard.writeText(a);
+          actionsEl.appendChild(b);
+        });
+
+        rawJson.textContent = JSON.stringify(obj, null, 2);
+
+        saveHistory({ query: queryEl.value, ts: Date.now(), response: obj });
+      }
+
+      function escapeHtml(s) {
+        if (!s) return "";
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      askBtn.addEventListener("click", async () => {
+        const q = queryEl.value.trim();
+        const top_k = Number(topKEl.value) || 3;
+        if (!q) return alert("Please type a question.");
+
+        showLoading(true);
+        try {
+          const res = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: q, top_k }),
+          });
+          if (!res.ok)
+            throw new Error(
+              "Network response was not ok: " +
+                res.status +
+                " " +
+                res.statusText
+            );
+          const data = await res.json();
+          renderResponse(data);
+        } catch (err) {
+          resultArea.classList.remove("hidden");
+          answerText.textContent = "Error: " + err.message;
+          citationsEl.innerHTML = "";
+          actionsEl.innerHTML = "";
+          rawJson.textContent = "";
+        } finally {
+          showLoading(false);
+        }
+      });
+
+      toggleRaw.addEventListener("click", () => {
+        rawJson.classList.toggle("hidden");
+        toggleRaw.textContent = rawJson.classList.contains("hidden")
+          ? "Show raw"
+          : "Hide raw";
+      });
+
+      copyAnswer.addEventListener("click", () => {
+        if (lastResponse && lastResponse.answer)
+          navigator.clipboard.writeText(lastResponse.answer);
+      });
+
+      downloadJson.addEventListener("click", () => {
+        if (!lastResponse) return;
+        const a = document.createElement("a");
+        const blob = new Blob([JSON.stringify(lastResponse, null, 2)], {
+          type: "application/json",
+        });
+        a.href = URL.createObjectURL(blob);
+        a.download = "rag-response.json";
+        a.click();
+      });
+
+      // history (localStorage)
+      function saveHistory(item) {
+        const h = JSON.parse(localStorage.getItem("rag_history") || "[]");
+        h.unshift(item);
+        localStorage.setItem("rag_history", JSON.stringify(h.slice(0, 20)));
+        renderHistory();
+      }
+      function renderHistory() {
+        const h = JSON.parse(localStorage.getItem("rag_history") || "[]");
+        if (h.length === 0) {
+          historyEl.innerHTML =
+            '<div class="text-slate-500">No history yet.</div>';
+          return;
+        }
+        historyEl.innerHTML = "";
+        h.forEach((it, idx) => {
+          const d = document.createElement("div");
+          d.className = "py-1 flex items-center justify-between gap-2";
+          const left = document.createElement("div");
+          left.className = "text-sm text-slate-700 truncate";
+          left.textContent = it.query;
+          const right = document.createElement("div");
+          right.className = "flex items-center gap-2";
+          const t = document.createElement("button");
+          t.className = "text-xs px-2 py-1 rounded border";
+          t.textContent = "Load";
+          t.onclick = () => {
+            queryEl.value = it.query;
+            renderResponse(it.response);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          };
+          const del = document.createElement("button");
+          del.className = "text-xs px-2 py-1 rounded border text-red-600";
+          del.textContent = "Delete";
+          del.onclick = () => {
+            h.splice(idx, 1);
+            localStorage.setItem("rag_history", JSON.stringify(h));
+            renderHistory();
+          };
+          right.appendChild(t);
+          right.appendChild(del);
+          d.appendChild(left);
+          d.appendChild(right);
+          historyEl.appendChild(d);
+        });
+      }
+      renderHistory();
+
+      // paste sample (the example output you gave) — useful if backend is not available
+      pasteSample.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dropdown = document.getElementById("queryExamples");
+        dropdown.classList.toggle("hidden");
+      });
+
+      document.querySelectorAll(".sample-query").forEach((item) => {
+        item.addEventListener("click", () => {
+          const normalizedText = item.textContent.trim().replace(/\s+/g, " ");
+          queryEl.value = normalizedText;
+          document.getElementById("queryExamples").classList.add("hidden");
+          // Focus on the query textarea
+          queryEl.focus();
+        });
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!pasteSample.contains(e.target)) {
+          document.getElementById("queryExamples").classList.add("hidden");
+        }
+      });
+
+      // friendly small note about API URL: show console warning if using localhost on deployed site
+      if (location.protocol === "https:" && API_URL.startsWith("http://")) {
+        console.warn(
+          "Using an insecure API URL (http://) from an https page may be blocked by browsers. Consider using https for the API."
+        );
+      }
+    </script>
+  </body>
+</html>
